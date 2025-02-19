@@ -1,29 +1,21 @@
 package org.slackcoder.twilight.model;
 
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.neo4j.core.schema.Node;
-import org.springframework.lang.Nullable;
+import org.springframework.data.neo4j.core.schema.Id;
+
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
 
 @Data
-@NoArgsConstructor
-@Node("User")
 public class User {
     @Id
-    private UUID userId;  // 用户唯一标识
-
-    private String username;  // 用户名
-
-    @Nullable
-    private String email;  // 邮箱（可为空）
-
-    private String password;  //SHA-256
-
-    private int userType;  //0=student, 1=teacher, 2=admin
+    private UUID userId;
+    private String username;
+    private String email;
+    private String password;
+    private int userType;
 
     public User(String username, String email, String password, int userType) {
         this.userId = UUID.randomUUID();
@@ -36,7 +28,7 @@ public class User {
     private String hashPassword(String password) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] encodedHash = digest.digest(password.getBytes());
+            byte[] encodedHash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
             StringBuilder hexString = new StringBuilder();
             for (byte b : encodedHash) {
                 String hex = Integer.toHexString(0xff & b);
@@ -47,7 +39,7 @@ public class User {
             }
             return hexString.toString();
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("SHA-256加密失败", e);
+            throw new RuntimeException("SHA-256加密异常", e);
         }
     }
 }

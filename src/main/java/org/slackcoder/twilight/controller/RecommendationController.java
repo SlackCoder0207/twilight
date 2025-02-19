@@ -16,6 +16,6 @@ public class RecommendationController {
 
     @GetMapping("/{userId}")
     public ApiResponse<List<Map<String, Object>>> getRecommendations(@PathVariable String userId) {
-        return recommendationService.recommendResources(userId);
+        return new ApiResponse<>(200, recommendationService.recommendResources(userId));
     }
 }

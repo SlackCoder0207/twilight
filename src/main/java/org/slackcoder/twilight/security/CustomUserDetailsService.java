@@ -8,7 +8,9 @@ import org.slackcoder.twilight.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
 
+@Service
 public class CustomUserDetailsService implements UserDetailsService {
     private final UserRepository userRepository;
 
@@ -22,7 +24,7 @@ public class CustomUserDetailsService implements UserDetailsService {
             UUID uuid = UUID.fromString(userId);
             Optional<User> user = userRepository.findById(uuid);
             if (user.isEmpty()) {
-                throw new UsernameNotFoundException("User not found");
+                throw new UsernameNotFoundException("未找到用户");
             }
             return org.springframework.security.core.userdetails.User
                     .withUsername(user.get().getUserId().toString())
@@ -30,7 +32,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                     .roles(String.valueOf(user.get().getUserType()))
                     .build();
         } catch (IllegalArgumentException e) {
-            throw new UsernameNotFoundException("Invalid UUID format");
+            throw new UsernameNotFoundException("UUID格式错误");
         }
     }
 }

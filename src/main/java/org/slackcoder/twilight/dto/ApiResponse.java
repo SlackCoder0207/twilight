@@ -1,11 +1,16 @@
 package org.slackcoder.twilight.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
-@AllArgsConstructor
+@Getter
+@Setter
 public class ApiResponse<T> {
-    private int status;  // HTTP 状态码
-    private T data;  // 接口返回数据
+    private int status;
+    private T data;
+
+    public ApiResponse(int status, T data) {
+        this.status = status;
+        this.data = data;
+    }
 }

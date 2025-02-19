@@ -3,16 +3,17 @@ package org.slackcoder.twilight.security;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
-
 import java.security.Key;
 import java.util.Date;
 
 @Component
 public class JwtUtil {
-    private static final String SECRET_KEY = "mySecretKeyForJwtAuthentication0123456789";
-    private static final long EXPIRATION_TIME = 86400000; // 1 天
+    private static final long EXPIRATION_TIME = 86400000; // 1 天过期
+    private final Key key;
 
-    private final Key key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
+    public JwtUtil() {
+        this.key = Keys.secretKeyFor(SignatureAlgorithm.HS256); // 生成安全的密钥
+    }
 
     public String generateToken(String userId) {
         return Jwts.builder()

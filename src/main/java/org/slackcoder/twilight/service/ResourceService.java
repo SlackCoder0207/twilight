@@ -13,7 +13,7 @@ public class ResourceService {
     @Autowired
     private ResourceRepository resourceRepository;
 
-    public Resource addResource(String title, String description, String category, String url, User publisher) {
+    public Resource addResource(String title, String description, String category, String url, UUID publisher) {
         Resource resource = new Resource(title, description, category, url, publisher);
         return resourceRepository.save(resource);
     }
