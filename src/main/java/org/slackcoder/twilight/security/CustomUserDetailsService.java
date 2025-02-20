@@ -22,7 +22,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String userId) throws UsernameNotFoundException {
         try {
             UUID uuid = UUID.fromString(userId);
-            Optional<User> user = userRepository.findById(uuid);
+            Optional<User> user = userRepository.findByUserId(uuid);
             if (user.isEmpty()) {
                 throw new UsernameNotFoundException("未找到用户");
             }

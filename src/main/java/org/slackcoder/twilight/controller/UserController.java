@@ -1,14 +1,15 @@
 package org.slackcoder.twilight.controller;
 
 import org.slackcoder.twilight.dto.ApiResponse;
+import org.slackcoder.twilight.exception.ResourceNotFoundException;
 import org.slackcoder.twilight.model.User;
 import org.slackcoder.twilight.security.JwtUtil;
 import org.slackcoder.twilight.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/user")
@@ -25,10 +26,17 @@ public class UserController {
         return new ApiResponse<>(200, createdUser);
     }
 
-    @PostMapping("/login")
+    @GetMapping("/login")
     public ApiResponse<String> login(@RequestBody User user) {
         String token = jwtUtil.generateToken(user.getUserId().toString());
         return new ApiResponse<>(200, token);
+    }
+
+    @GetMapping("/{userId}")
+    public ApiResponse<User> getUserById(@PathVariable UUID userId) {
+        Optional<User> user = userService.findById(userId);
+        return user.map(value -> new ApiResponse<>(200, value))
+                .orElseThrow(() -> new ResourceNotFoundException("用户未找到"));
     }
 
 //    @GetMapping("/{email}")

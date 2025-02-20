@@ -12,7 +12,7 @@ public class JwtUtil {
     private final Key key;
 
     public JwtUtil() {
-        this.key = Keys.secretKeyFor(SignatureAlgorithm.HS256); // 生成安全的密钥
+        this.key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
     }
 
     public String generateToken(String userId) {
