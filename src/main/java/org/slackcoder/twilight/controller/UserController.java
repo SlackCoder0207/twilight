@@ -6,13 +6,18 @@ import org.slackcoder.twilight.model.User;
 import org.slackcoder.twilight.security.JwtUtil;
 import org.slackcoder.twilight.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/user")
+@CrossOrigin(origins = "*")
+@PreAuthorize("permitAll()")
 public class UserController {
     @Autowired
     private UserService userService;
@@ -34,10 +39,12 @@ public class UserController {
 
     @GetMapping("/{userId}")
     public ApiResponse<User> getUserById(@PathVariable UUID userId) {
-        Optional<User> user = userService.findById(userId);
-        return user.map(value -> new ApiResponse<>(200, value))
+        return userService.findById(userId)
+                .map(user -> new ApiResponse<>(200, user))
                 .orElseThrow(() -> new ResourceNotFoundException("用户未找到"));
     }
+
+
 
 //    @GetMapping("/{email}")
 //    public ApiResponse<User> getUserByEmail(@PathVariable String email) {

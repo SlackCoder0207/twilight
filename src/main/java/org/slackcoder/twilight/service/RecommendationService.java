@@ -2,46 +2,55 @@ package org.slackcoder.twilight.service;
 
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
-import org.neo4j.driver.Result;
+import org.neo4j.driver.SessionConfig;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class RecommendationService {
-    @Autowired
-    private Driver neo4jDriver;
+
+    private final Driver neo4jDriver;
 
     @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
+    public RecommendationService(Driver neo4jDriver) {
+        this.neo4jDriver = neo4jDriver;
+    }
 
+    // 根据用户推荐资源，返回前10个资源，并对相似度仅保留两位小数
     public List<Map<String, Object>> recommendResources(String userId) {
-        String cacheKey = "recommendations:" + userId;
-
-        List<Map<String, Object>> cachedRecommendations = (List<Map<String, Object>>) redisTemplate.opsForValue().get(cacheKey); //先查询Redis
-        if (!cachedRecommendations.isEmpty()) {
-            return cachedRecommendations;
-        }
-
-        //缓存未命中再新获取
         List<Map<String, Object>> recommendations = new ArrayList<>();
-        try (Session session = neo4jDriver.session()) {
-            Result result = session.run(
+        try (Session session = neo4jDriver.session(SessionConfig.forDatabase("twilight"))) {
+            var result = session.run(
                     "MATCH (u:User {userId: $userId}), (r:Resource) " +
-                            "RETURN r {.*, score: gds.similarity.cosine(u.embedding, r.embedding) } " +
+                            "WHERE u.embedding IS NOT NULL AND r.embedding IS NOT NULL " +
+                            "WITH u, r, gds.similarity.cosine(u.embedding, r.embedding) AS score " +
+                            "RETURN r {.*, score: toFloat(round(score * 100))/100.0} AS recommendation " +
                             "ORDER BY score DESC LIMIT 10",
-                    Map.of("userId", userId)
+                    Collections.singletonMap("userId", userId)
             );
-            result.stream().forEach(record -> recommendations.add(record.get("r").asMap()));
+            while (result.hasNext()) {
+                recommendations.add(result.next().get("recommendation").asMap());
+            }
         }
-
-        redisTemplate.opsForValue().set(cacheKey, recommendations, Duration.ofHours(1)); //缓存1h
-
         return recommendations;
+    }
+
+    // 新增热门资源接口：返回交互数最多的前6个资源
+    public List<Map<String, Object>> getPopularResources() {
+        List<Map<String, Object>> popularResources = new ArrayList<>();
+        try (Session session = neo4jDriver.session(SessionConfig.forDatabase("twilight"))) {
+            var result = session.run(
+                    "MATCH (u:User)-[r:INTERACTS_WITH]->(res:Resource) " +
+                            "WITH res, count(r) AS interactions " +
+                            "RETURN res {.*, interactions: interactions} AS resource " +
+                            "ORDER BY interactions DESC LIMIT 6"
+            );
+            while (result.hasNext()) {
+                popularResources.add(result.next().get("resource").asMap());
+            }
+        }
+        return popularResources;
     }
 }

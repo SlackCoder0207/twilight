@@ -14,14 +14,16 @@ public class Resource {
     private String category;
     private String url;
     private UUID publisher;
+    private String type;
 
-    public Resource(String title, String description, String category, String url, UUID publisher) {
+    public Resource(String title, String description, String category, String url, UUID publisher, String type) {
         this.resourceId = UUID.randomUUID();
         this.title = title;
         this.description = description;
         this.category = category;
         this.url = url;
         this.publisher = publisher;
+        this.type = type;
     }
 
 }
